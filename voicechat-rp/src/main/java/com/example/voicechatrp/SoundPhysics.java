@@ -5,6 +5,9 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.util.Vector;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class SoundPhysics {
 
     // Returns a multiplier from 0.0 (silent) to 1.0 (full volume)
@@ -30,28 +33,34 @@ public class SoundPhysics {
 
         double checkDistance = 0.5;
         Location currentLoc = source.clone();
+        Set<Block> checkedBlocks = new HashSet<>();
 
         // Raytrace to find blocks between source and listener
         for (double d = 0; d < distance; d += checkDistance) {
             currentLoc.add(direction.clone().multiply(checkDistance));
             Block block = currentLoc.getBlock();
-            Material type = block.getType();
 
-            if (!type.isAir() && type.isSolid()) {
-                if (type.name().contains("DOOR") || type.name().contains("TRAPDOOR")) {
-                    multiplier *= 0.8;
-                } else if (type.name().contains("GLASS")) {
-                    multiplier *= 0.6;
-                } else {
-                    multiplier *= 0.3;
+            // Only apply penalty once per physical block
+            if (!checkedBlocks.contains(block)) {
+                checkedBlocks.add(block);
+                Material type = block.getType();
+
+                if (!type.isAir() && type.isSolid()) {
+                    if (type.name().contains("DOOR") || type.name().contains("TRAPDOOR")) {
+                        multiplier *= 0.90; // Minor reduction for doors
+                    } else if (type.name().contains("GLASS")) {
+                        multiplier *= 0.85; // Minor reduction for glass
+                    } else {
+                        multiplier *= 0.65; // Moderate reduction per solid block (so 1 block won't instantly mute)
+                    }
                 }
-            }
 
-            if (multiplier < 0.01) {
-                return 0.0;
+                if (multiplier < 0.01) {
+                    return 0.0;
+                }
             }
         }
 
-        return multiplier; // Removed linear distance multiplier so it isn't applied twice
+        return multiplier;
     }
 }
