@@ -1,0 +1,9 @@
+name: VoiceChatRP
+version: 1.0-SNAPSHOT
+main: com.example.voicechatrp.VoiceChatRPPlugin
+api-version: '1.21'
+depend: [voicechat]
+commands:
+  radio:
+    description: Zarzadzanie radiem
+    usage: /radio <give|set|off> [czestotliwosc]
